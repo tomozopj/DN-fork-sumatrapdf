@@ -1,27 +1,34 @@
-name: Build
+name: Build SumatraPDF (DN-fork)
+
 on:
+  workflow_dispatch: # 手動でビルドを開始するための設定
   push:
-  pull_request:
-  repository_dispatch:
-    types: [build-pre-rel]
+    branches: [ "dn_3.5.2_patch2" ]
+
 jobs:
   build:
-    name: Build
-    #runs-on: SumatraBuilder
-    runs-on: windows-latest
+    runs-on: windows-latest # 2026年最新のWindowsランナーを使用
+
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.20"
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive # 依存ライブラリ（ext）を読み込むために必須
 
-      - name: Check out source code
-        uses: actions/checkout@v4
-        with:
-          # needed to calc build number via git log --oneline
-          fetch-depth: 0
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
 
-      - name: Build
-        env:
-          CERT_PWD: ${{ secrets.CERT_PWD }}
-        run: .\doit.bat -ci
+    - name: Build Solution
+      run: |
+        msbuild SumatraPDF.sln `
+          -property:Configuration=Release `
+          -property:Platform=x64 `
+          -maxCpuCount
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: SumatraPDF-DN-fork-exe
+        path: |
+          out/Release/SumatraPDF.exe
+          out/Release/*.dll
