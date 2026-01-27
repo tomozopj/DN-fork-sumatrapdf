@@ -13,21 +13,27 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        submodules: recursive # SumatraPDFには必須です
+        submodules: recursive
 
-    - name: List files for debug
-      run: dir /s # ファイルがどこにあるかログに表示します
-
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Build Solution
+    - name: Find and Build Solution
+      shell: pwsh
       run: |
-        # ソリューションファイルを自動で見つけてビルドします
-        $sln = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1 -ExpandProperty FullName
-        if (-not $sln) { throw "Solution file not found!" }
-        msbuild $sln -property:Configuration=Release -property:Platform=x64 -maxCpuCount
+        # 1. リポジトリ内のすべての .sln ファイルを探して表示する（デバッグ用）
+        $slnFiles = Get-ChildItem -Recurse -Filter *.sln
+        Write-Host "Found the following solution files:"
+        $slnFiles.FullName
 
+        # 2. 最初の .sln ファイルを取得
+        $targetSln = $slnFiles[0].FullName
+        if (-not $targetSln) { throw "Solution file not found!" }
+        Write-Host "Building: $targetSln"
+
+        # 3. ビルド実行
+        msbuild $targetSln `
+          -property:Configuration=Release `
+          -property:Platform=x64 `
+          -maxCpuCount
+          
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
