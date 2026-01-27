@@ -13,31 +13,23 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        submodules: recursive
+        submodules: recursive # 依存関係の取得に必須です
 
-    - name: Find and Build Solution
-      shell: pwsh
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2 # これで msbuild コマンドを有効化します
+
+    - name: Build SumatraPDF
       run: |
-        # 1. リポジトリ内のすべての .sln ファイルを探して表示する（デバッグ用）
-        $slnFiles = Get-ChildItem -Recurse -Filter *.sln
-        Write-Host "Found the following solution files:"
-        $slnFiles.FullName
-
-        # 2. 最初の .sln ファイルを取得
-        $targetSln = $slnFiles[0].FullName
-        if (-not $targetSln) { throw "Solution file not found!" }
-        Write-Host "Building: $targetSln"
-
-        # 3. ビルド実行
-        msbuild $targetSln `
+        msbuild vs2022/SumatraPDF.sln `
           -property:Configuration=Release `
           -property:Platform=x64 `
           -maxCpuCount
-          
+
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: SumatraPDF-DN-fork-exe
         path: |
-          **/Release/SumatraPDF.exe
-          **/Release/*.dll
+          **/SumatraPDF.exe
+          **/SumatraPDF.dll
+          **/libmupdf.dll
