@@ -13,14 +13,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        submodules: recursive # 依存関係の取得に必須です
+        submodules: recursive
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2 # これで msbuild コマンドを有効化します
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build SumatraPDF
+      # 壊れている補助ツール(enginedump)を無視して、本体(SumatraPDF)だけをビルドします
       run: |
         msbuild vs2022/SumatraPDF.sln `
+          -target:SumatraPDF `
           -property:Configuration=Release `
           -property:Platform=x64 `
           -maxCpuCount
@@ -30,6 +32,4 @@ jobs:
       with:
         name: SumatraPDF-DN-fork-exe
         path: |
-          **/SumatraPDF.exe
-          **/SumatraPDF.dll
-          **/libmupdf.dll
+          out/rel64/SumatraPDF.exe
