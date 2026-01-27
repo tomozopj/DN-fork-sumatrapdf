@@ -1,34 +1,37 @@
 name: Build SumatraPDF (DN-fork)
 
 on:
-  workflow_dispatch: # 手動でビルドを開始するための設定
+  workflow_dispatch:
   push:
     branches: [ "dn_3.5.2_patch2" ]
 
 jobs:
   build:
-    runs-on: windows-latest # 2026年最新のWindowsランナーを使用
+    runs-on: windows-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        submodules: recursive # 依存ライブラリ（ext）を読み込むために必須
+        submodules: recursive # SumatraPDFには必須です
+
+    - name: List files for debug
+      run: dir /s # ファイルがどこにあるかログに表示します
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
     - name: Build Solution
       run: |
-        msbuild SumatraPDF.sln `
-          -property:Configuration=Release `
-          -property:Platform=x64 `
-          -maxCpuCount
+        # ソリューションファイルを自動で見つけてビルドします
+        $sln = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1 -ExpandProperty FullName
+        if (-not $sln) { throw "Solution file not found!" }
+        msbuild $sln -property:Configuration=Release -property:Platform=x64 -maxCpuCount
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: SumatraPDF-DN-fork-exe
         path: |
-          out/Release/SumatraPDF.exe
-          out/Release/*.dll
+          **/Release/SumatraPDF.exe
+          **/Release/*.dll
