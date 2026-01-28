@@ -1,12 +1,12 @@
 name: Build and Release SumatraPDF (DN-fork)
 
 on:
-  workflow_dispatch: # 手動実行用
+  workflow_dispatch:
   push:
     branches: [ "dn_3.5.2_patch2" ]
 
 permissions:
-  contents: write # リリースを作成するために必要な権限
+  contents: write
 
 jobs:
   build:
@@ -41,6 +41,25 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.tag_name }}
         name: SumatraPDF DN-fork Release ${{ steps.tag.outputs.tag_name }}
-        files: out/rel64/SumatraPDF.exe
         draft: false
         prerelease: false
+        files: out/rel64/SumatraPDF.exe
+        body: |
+          SumatraPDF DN-fork (3.5.2_patch2) の自動ビルド版バイナリです。
+
+          ## 📌 今回の更新内容
+          - **ソース元:** [dnobori/DN-fork-sumatrapdf](https://github.com/dnobori/DN-fork-sumatrapdf) の `dn_3.5.2_patch2` ブランチを反映
+          - **主な変更:** 登大遊 氏によるアクセラレータキーの挙動修正・最適化パッチ適用済
+
+          ## 💻 ビルド環境
+          - **コンパイラ:** MSVC v143 (Visual Studio 2022)
+          - **ターゲット:** Windows x64 (64-bit)
+          - **ツール:** GitHub Actions (windows-latest)
+
+          ## 💾 使い方
+          1. 下記の **Assets** から `SumatraPDF.exe` をダウンロード。
+          2. そのまま実行してポータブル版として利用可能です。
+
+          ---
+          > [!IMPORTANT]
+          > **免責事項:** これは非公式のビルドです。不具合報告を元の作者様へ送らないようお願いします。
