@@ -1,0 +1,19 @@
+name: Scheduled Fork Sync
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 毎日、日本時間の午前9時（UTC 0時）に実行
+  workflow_dispatch: # 手動で同期ボタンを押したい時用
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync with Upstream
+        run: |
+          gh repo sync ${{ github.repository }} -b dn_3.5.2_patch2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
