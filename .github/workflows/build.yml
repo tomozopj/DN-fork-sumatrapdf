@@ -1,9 +1,12 @@
-name: Build SumatraPDF (DN-fork)
+name: Build and Release SumatraPDF (DN-fork)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # 手動実行用
   push:
     branches: [ "dn_3.5.2_patch2" ]
+
+permissions:
+  contents: write # リリースを作成するために必要な権限
 
 jobs:
   build:
@@ -19,7 +22,6 @@ jobs:
       uses: microsoft/setup-msbuild@v2
 
     - name: Build SumatraPDF
-      # 壊れている補助ツール(enginedump)を無視して、本体(SumatraPDF)だけをビルドします
       run: |
         msbuild vs2022/SumatraPDF.sln `
           -target:SumatraPDF `
@@ -27,9 +29,18 @@ jobs:
           -property:Platform=x64 `
           -maxCpuCount
 
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
+    - name: Create Release Tag
+      id: tag
+      shell: pwsh
+      run: |
+        $date = Get-Date -Format "yyyyMMdd-HHmm"
+        echo "tag_name=v3.5.2-dn-$date" >> $env:GITHUB_OUTPUT
+
+    - name: Automatic Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: SumatraPDF-DN-fork-exe
-        path: |
-          out/rel64/SumatraPDF.exe
+        tag_name: ${{ steps.tag.outputs.tag_name }}
+        name: SumatraPDF DN-fork Release ${{ steps.tag.outputs.tag_name }}
+        files: out/rel64/SumatraPDF.exe
+        draft: false
+        prerelease: false
