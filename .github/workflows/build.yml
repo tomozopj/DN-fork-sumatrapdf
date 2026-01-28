@@ -6,7 +6,7 @@ on:
     branches: [ "dn_3.5.2_patch2" ]
 
 permissions:
-  contents: write
+  contents: write # リリース作成と削除の両方に必要です
 
 jobs:
   build:
@@ -48,18 +48,25 @@ jobs:
           SumatraPDF DN-fork (3.5.2_patch2) の自動ビルド版バイナリです。
 
           ## 📌 今回の更新内容
-          - **ソース元:** [dnobori/DN-fork-sumatrapdf](https://github.com/dnobori/DN-fork-sumatrapdf) の `dn_3.5.2_patch2` ブランチを反映
-          - **主な変更:** 登大遊 氏によるアクセラレータキーの挙動修正・最適化パッチ適用済
+          - **ソース元:** [dnobori/DN-fork-sumatrapdf](https://github.com/dnobori/DN-fork-sumatrapdf) の最新ソースをビルド
+          - **パッチ:** 登大遊 氏によるアクセラレータキー（ショートカット）の最適化パッチ適用済
 
           ## 💻 ビルド環境
-          - **コンパイラ:** MSVC v143 (Visual Studio 2022)
-          - **ターゲット:** Windows x64 (64-bit)
-          - **ツール:** GitHub Actions (windows-latest)
+          - **ツール:** GitHub Actions (MSVC v143 / x64 Release)
 
           ## 💾 使い方
-          1. 下記の **Assets** から `SumatraPDF.exe` をダウンロード。
-          2. そのまま実行してポータブル版として利用可能です。
+          1. 下記の **Assets** セクションから `SumatraPDF.exe` を直接ダウンロード。
+          2. インストール不要のポータブル版としてそのまま使用可能です。
 
           ---
           > [!IMPORTANT]
-          > **免責事項:** これは非公式のビルドです。不具合報告を元の作者様へ送らないようお願いします。
+          > **免責事項:** これは非公式の自動ビルドです。不具合等を元の作者様へ問い合わせることはご遠慮ください。
+
+    # ここから自動削除ステップ
+    - name: Delete older releases
+      uses: dev-drprasad/delete-older-releases@v0.3.3
+      with:
+        keep_latest: 3 # 最新の3件だけを残して古いものを削除
+        delete_tags: true # 削除したリリースに関連するタグも完全に消去
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
